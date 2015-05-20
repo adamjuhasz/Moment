@@ -34,5 +34,10 @@ Pod::Spec.new do |s|
 
   # s.public_header_files = 'Pod/Classes/**/*.h'
   # s.frameworks = 'UIKit', 'MapKit'
-  # s.dependency 'AFNetworking', '~> 2.3'
+   s.dependency 'Mantle'
+   s.dependency 'GPUImage'
+   s.dependency 'CocoaLumberjack'
+   s.dependency 'NYXImagesKit'
+   s.dependency 'CocoaSecurity'
+   s.dependency 'UICKeyChainStore'
 end
