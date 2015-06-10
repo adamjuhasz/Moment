@@ -11,6 +11,7 @@
 #import <Mantle/NSValueTransformer+MTLPredefinedTransformerAdditions.h>
 #import <Mantle/MTLValueTransformer.h>
 #import <CocoaLumberjack/CocoaLumberjack.h>
+#import <ReactiveCocoa/ReactiveCocoa.h>
 
 static const int ddLogLevel = DDLogLevelInfo;
 
@@ -18,9 +19,6 @@ static const int ddLogLevel = DDLogLevelInfo;
 {
     NSDictionary *myDictionary;
     NSTimer *filterUpdateTimer;
-    void * GUARD_LifetimeChanged;
-    void * GUARD_CreationDateChanged;
-    void * GUARD_ErroredOut;
 }
 
 @property BOOL needsUpdate;
@@ -35,23 +33,24 @@ static const int ddLogLevel = DDLogLevelInfo;
     delegates = [NSMutableArray array];
     
     //set sane defaults
-    if (GUARD_LifetimeChanged == NULL) {
-        GUARD_LifetimeChanged = &GUARD_LifetimeChanged;
-        [self addObserver:self forKeyPath:NSStringFromSelector(@selector(lifetime)) options:0 context:GUARD_LifetimeChanged];
-    }
+    __weak Moment *weakSelf = self;
+    [RACObserve(weakSelf, timeLifetime) subscribeNext:^(NSNumber *newLifetime) {
+        _dateExpires = [NSDate dateWithTimeInterval:[newLifetime doubleValue] sinceDate:self.dateCreated];
+        //[self startTimer];
+    }];
     
-    if (GUARD_CreationDateChanged == NULL) {
-        GUARD_CreationDateChanged = &GUARD_CreationDateChanged;
-        [self addObserver:self forKeyPath:NSStringFromSelector(@selector(dateCreated)) options:0 context:GUARD_CreationDateChanged];
-    }
-    if (GUARD_ErroredOut == NULL) {
-        GUARD_ErroredOut = &GUARD_ErroredOut;
-        [self addObserver:self forKeyPath:NSStringFromSelector(@selector(erroredOut)) options:0 context:GUARD_ErroredOut];
-    }
+    [RACObserve(weakSelf, dateCreated) subscribeNext:^(NSDate *newDateCreated) {
+        _dateExpires = [NSDate dateWithTimeInterval:self.timeLifetime sinceDate:newDateCreated];
+        //[self startTimer];
+    }];
+    
+    [RACObserve(weakSelf, dateExpires) subscribeNext:^(NSDate *newDateExpires) {
+        _timeLifetime = [newDateExpires timeIntervalSinceDate:self.dateCreated];
+        //[self startTimer];
+    }];
     
     _imageLoaded = NO;
     _downloadPercent = 0.0;
-    _erroredOut = NO;
     
     [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(backFromBackground) name:UIApplicationDidBecomeActiveNotification object:nil];
 }
@@ -61,9 +60,9 @@ static const int ddLogLevel = DDLogLevelInfo;
     self = [super init];
     if (self) {
         [self commonInit];
-        _dateCreated = [[NSDate date] timeIntervalSince1970];
-        _lifetime = 60*60*24;
-        _expires = _dateCreated + _lifetime;
+        _dateCreated = [NSDate date];
+        _timeLifetime = 60*60*24; //1 day
+        _dateExpires = [NSDate dateWithTimeInterval:_timeLifetime sinceDate:_dateCreated];
     }
     return  self;
 }
@@ -80,7 +79,6 @@ static const int ddLogLevel = DDLogLevelInfo;
         }
         
         _likes = [_likes mutableCopy];
-        _hashtags = [_hashtags mutableCopy];
         
         myDictionary = [post copy];
     }
@@ -89,15 +87,21 @@ static const int ddLogLevel = DDLogLevelInfo;
 
 - (BOOL)validateMonent
 {
-    NSTimeInterval calculatedExpiration = self.dateCreated + self.lifetime;
-    NSTimeInterval currentTime = [[NSDate date] timeIntervalSince1970];
-    
-    if (ABS(calculatedExpiration - self.expires) > 60) {
-        DDLogError(@"%@(0x%08X) Moment's expiration dates are out of sync calculated: %f, loaded: %f, created:%f, lifetime: %lu", self.postid,  (unsigned int)self, calculatedExpiration, self.expires, self.dateCreated, (unsigned long)self.lifetime);
+    NSDate *calculatedExpirationDate = [NSDate dateWithTimeInterval:self.timeLifetime sinceDate:self.dateCreated];
+    if ([self.dateExpires isEqualToDate:calculatedExpirationDate] == NO) {
+        DDLogError(@"%@(0x%08X) Moment's expiration dates are out of sync! calculated Date: %@; loaded Date: %@; creation date:%@; lifetime: %lu",
+                   self.postid,
+                   (unsigned int)self,
+                   calculatedExpirationDate,
+                   self.dateExpires,
+                   self.dateCreated,
+                   (unsigned long)self.timeLifetime);
         return NO;
     }
-    if (self.expires < currentTime) {
-        DDLogInfo(@"%@(0x%08X) Moment's is expired", self.postid,  (unsigned int)self);
+    if ([self.dateExpires compare:[NSDate date]] == NSOrderedAscending) {
+        DDLogInfo(@"%@(0x%08X) Moment's is expired",
+                  self.postid,
+                  (unsigned int)self);
         return NO;
     }
     
@@ -113,49 +117,25 @@ static const int ddLogLevel = DDLogLevelInfo;
         filterUpdateTimer = nil;
     }
     
-    if (GUARD_LifetimeChanged == &GUARD_LifetimeChanged) {
-        GUARD_LifetimeChanged = NULL;
-        [self removeObserver:self forKeyPath:NSStringFromSelector(@selector(lifetime))];
-    }
-    if (GUARD_CreationDateChanged == &GUARD_CreationDateChanged) {
-        GUARD_CreationDateChanged = NULL;
-        [self removeObserver:self forKeyPath:NSStringFromSelector(@selector(dateCreated))];
-    }
-    if (GUARD_ErroredOut == &GUARD_ErroredOut) {
-        GUARD_ErroredOut = NULL;
-        [self removeObserver:self forKeyPath:NSStringFromSelector(@selector(erroredOut))];
-    }
-    
     [[NSNotificationCenter defaultCenter] removeObserver:self];
     
-}
-
-- (void) observeValueForKeyPath:(NSString *)keyPath ofObject:(id)object change:(NSDictionary *)change context:(void *)context
-{
-    if (context == GUARD_LifetimeChanged || context == GUARD_CreationDateChanged) {
-        self.expires = self.lifetime + self.dateCreated;
-    } else if (context == GUARD_ErroredOut) {
-        @synchronized(delegates) {
-            for (id <MomentDelegate> delagate in delegates) {
-                [delagate momentHasErrored:self];
-            }
-        }
-    }
 }
 
 - (NSString*)description
 {
     NSString *introString = @"";
-    if ([super class] == [NSObject class]) {
-        introString = [NSString stringWithFormat:@"<Moment 0x%08X>", (unsigned)self];
+    if ([self class] == [Moment class]) {
+        introString = [NSString stringWithFormat:@"<%@ 0x%08X>",
+                       NSStringFromClass(self.class),
+                       (unsigned)self];
     } else {
         introString = [NSString stringWithFormat:@"%@;", [super description]];
     }
-    return [NSString stringWithFormat:@"%@ postid: %@; date: %f; lifetime: %lu; time to live: %f; filter value: %f; filter: %@; timer: %f",
+    return [NSString stringWithFormat:@"%@ postid: %@; creation date: %@; lifetime: %lu; time to live: %f; filter value: %f; filter name: %@; timer: %f",
             introString,
             self.postid,
             self.dateCreated,
-            (unsigned long)self.lifetime,
+            (unsigned long)self.timeLifetime,
             self.lifetimeLeft,
             self.filter.filterValue,
             self.filterName,
@@ -166,7 +146,7 @@ static const int ddLogLevel = DDLogLevelInfo;
 
 - (NSTimeInterval)lifetimeLeft
 {
-    NSTimeInterval lifeLeft = _expires - [[NSDate date] timeIntervalSince1970];
+    NSTimeInterval lifeLeft = [_dateExpires timeIntervalSinceNow];
     return lifeLeft;
 }
 
@@ -186,7 +166,7 @@ static const int ddLogLevel = DDLogLevelInfo;
          NSStringFromSelector(@selector(postid)) : @"postid",
          NSStringFromSelector(@selector(location)) : @"location",
          NSStringFromSelector(@selector(lifetime)) : @"lifetime",
-         NSStringFromSelector(@selector(expires)) : @"expiresAfter",
+         NSStringFromSelector(@selector(dateExpires)) : @"dateExpires",
          NSStringFromSelector(@selector(filterName)) : @"filter",
          NSStringFromSelector(@selector(dateCreated)) : @"date",
          NSStringFromSelector(@selector(userid)) : @"userid",
@@ -194,7 +174,7 @@ static const int ddLogLevel = DDLogLevelInfo;
          NSStringFromSelector(@selector(likeCount)) : @"likes",
          NSStringFromSelector(@selector(commentCount)) : @"commnets",
          NSStringFromSelector(@selector(activityCount)) : @"activity",
-         NSStringFromSelector(@selector(lastChanged)) : @"lastChanged",
+         NSStringFromSelector(@selector(dateLastChanged)) : @"dateLastChanged",
          NSStringFromSelector(@selector(isPrivate)) : @"private",
          NSStringFromSelector(@selector(filterSettings)) : @"filterSettings",
          NSStringFromSelector(@selector(dictionary)) : NSNull.null,
@@ -206,8 +186,6 @@ static const int ddLogLevel = DDLogLevelInfo;
          NSStringFromSelector(@selector(image)) : NSNull.null,
          NSStringFromSelector(@selector(key)) : NSNull.null,
          NSStringFromSelector(@selector(likes)) : @"likeArray",
-         NSStringFromSelector(@selector(hashtags)) : @"hashtags",
-         NSStringFromSelector(@selector(erroredOut)) : NSNull.null
     };
 }
 
@@ -219,7 +197,7 @@ static const int ddLogLevel = DDLogLevelInfo;
 {
     if (newerModel.activityCount > self.activityCount) {
         [super mergeValuesForKeysFromModel:newerModel];
-    } else if (newerModel.activityCount == self.activityCount && newerModel.lastChanged > self.lastChanged) {
+    } else if (newerModel.activityCount == self.activityCount && [newerModel.dateLastChanged compare:self.dateLastChanged] == NSOrderedAscending) {
         [super mergeValuesForKeysFromModel:newerModel];
     }
 }
@@ -283,7 +261,7 @@ static const int ddLogLevel = DDLogLevelInfo;
 {
     return _image;
 }
-
+/*
 - (void)setFilteredImage:(UIImage *)filteredImage
 {
     //_filteredImage = filteredImage;
@@ -303,23 +281,29 @@ static const int ddLogLevel = DDLogLevelInfo;
     }
     return filteredImage;
 }
+*/
 
 #pragma mark - Filter
 
 - (void)setFilterName:(NSString *)filterName
 {
     _filterName = filterName;
+    _filterSettings = nil;
     [self loadFilter];
 }
 
 - (NSString*)filterName
 {
+    if (self.filter) {
+        return self.filter.filterName;
+    }
     return _filterName;
 }
 
 - (void)setFilterSettings:(NSDictionary *)filterSettings
 {
     _filterSettings = filterSettings;
+    [self loadFilter];
 }
 
 - (NSDictionary*)filterSettings
@@ -337,7 +321,12 @@ static const int ddLogLevel = DDLogLevelInfo;
     
     //NSLog(@"%@ is loading filter %@", self.postid, self.filterName);
     //create filter
-    self.filter = [MomentFilter filterWithName:self.filterName];
+    if (self.filterName == nil) {
+        self.filter = nil;
+        return;
+    }
+    
+    self.filter = [MomentFilter filterWithName:_filterName];
     self.filter.filterSettings = _filterSettings;
     
     //start running filter
@@ -359,7 +348,7 @@ static const int ddLogLevel = DDLogLevelInfo;
     [filterUpdateTimer invalidate];
     filterUpdateTimer = nil;
     
-    NSTimeInterval SecondsBetweenUpdates = (float)self.lifetime/self.filter.filterSteps;
+    NSTimeInterval SecondsBetweenUpdates = self.timeLifetime / self.filter.filterSteps;
     DDLogInfo(@"Setting timer to fire every %f seconds", SecondsBetweenUpdates);
     filterUpdateTimer = [NSTimer scheduledTimerWithTimeInterval:SecondsBetweenUpdates
                                                          target:self
@@ -386,11 +375,10 @@ static const int ddLogLevel = DDLogLevelInfo;
     }
     
     //find current filter percent
-    NSTimeInterval currentTime = [[NSDate date] timeIntervalSince1970];
-    double secondsOfLifeRemaining = self.expires - currentTime;
+    double secondsOfLifeRemaining = [self.dateExpires timeIntervalSinceNow];
     double percentToFilter = 1.0;
     if (secondsOfLifeRemaining > 0) {
-        percentToFilter = (self.lifetime - secondsOfLifeRemaining)/(double)self.lifetime;
+        percentToFilter = (self.timeLifetime - secondsOfLifeRemaining)/(double)self.timeLifetime;
     } else {
         DDLogInfo(@"Moment %@ seems to be filtering after expiration", self.postid);
         [filterUpdateTimer invalidate];
@@ -403,7 +391,7 @@ static const int ddLogLevel = DDLogLevelInfo;
     
     self.filter.filterValue = percentToFilter;
     
-    DDLogDebug(@"updateFilter %@", self);
+    //DDLogDebug(@"updateFilter has run for %@", self);
 }
 
 #pragma mark - Moment Delegate
@@ -427,6 +415,8 @@ static const int ddLogLevel = DDLogLevelInfo;
 - (void)momentFilter:(MomentFilter*)filter hasNewFilteredImage:(UIImage*)image
 {
     //NSLog(@"%@(0x%08X) has a new filtered image", self.postid, (unsigned int)self);
+    
+    self.filteredImage = image;
     
     dispatch_async(dispatch_get_main_queue(), ^{
         [[NSNotificationCenter defaultCenter] postNotificationName:kMomentFilterUpdated object:self userInfo:nil];

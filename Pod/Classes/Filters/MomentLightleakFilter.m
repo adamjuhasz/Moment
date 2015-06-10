@@ -38,7 +38,7 @@ static BOOL filesLoading = NO;
     }
     
     if (!imageNames) {
-        imageNames = @[@"1.jpg", @"2.jpg", @"3.jpg", @"4.jpg", @"5.jpg"];
+        imageNames = @[@"Moment.bundle/1.jpg", @"Moment.bundle/2.jpg", @"Moment.bundle/3.jpg", @"Moment.bundle/4.jpg", @"Moment.bundle/5.jpg"];
     }
     if (!loadedFiles) {
         loadedFiles = [NSMutableDictionary dictionary];
@@ -63,7 +63,7 @@ static BOOL filesLoading = NO;
         filter = [CIFilter filterWithName:@"CIScreenBlendMode"];
         leaks = [NSMutableArray array];
         [[self class] loadLeaks];
-        [self loadArrayOfFiled:@[@"1.jpg"]];
+        [self loadArrayOfFiled:@[@"Moment.bundle/1.jpg"]];
     }
     return self;
 }

@@ -20,7 +20,6 @@
 - (void)momenthasloadedImage:(Moment*)moment;
 - (void)moment:(Moment*)moment downloadProgress:(float)progress;
 - (void)momentHasErrored:(Moment*)moment;
-
 @end
 
 @interface Moment : SecureMTLModel <MTLJSONSerializing, MomentFilterDelegate>
@@ -33,43 +32,42 @@
 
 - (id)init;
 
-//moment properties
-@property NSString *postid;
-@property NSUInteger lifetime;
-@property double expires;
-@property NSString *filterName;
-@property NSTimeInterval dateCreated;
-@property NSString *userid;
+//user created
 @property NSString *text;
 @property UIImage *image;
+@property NSString *filterName;
 @property NSDictionary *filterSettings;
+@property CLLocation *coordinates;
+@property NSString *roomId;
 
+//moment properties
+@property NSString *postid;
+
+@property NSDate *dateExpires;
+@property NSDate *dateCreated;
+@property NSTimeInterval timeLifetime;
+@property NSString *userid;
 @property NSUInteger likeCount;
 @property NSUInteger commentCount;
 @property NSUInteger activityCount;
-@property NSTimeInterval lastChanged;
+@property NSDate *dateLastChanged;
 
-@property BOOL isPrivate;
-@property CLLocation *coordinates;
 @property (readonly) NSString *key;
 
 @property NSMutableArray *likes;
-@property NSMutableArray *hashtags;
-@property BOOL erroredOut;
 
 //generated
 @property (readonly) NSDictionary *dictionary;
-@property (readonly) NSTimeInterval lifetimeLeft;
+@property (readonly) NSTimeInterval timeLifetimeLeft;
 
 //app based
 @property float downloadPercent;
 @property BOOL imageLoaded;
 
-@property (readonly) UIImage *filteredImage;
+@property UIImage *filteredImage;
 @property MomentFilter *filter;
 
 //operate on this moment
-
 - (void)addDelegate:(id<MomentDelegate>)deleage;
 - (void)removeDelegate:(id)delegate;
 - (void)startTimer;

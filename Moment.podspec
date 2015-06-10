@@ -29,7 +29,7 @@ Pod::Spec.new do |s|
 
   s.source_files = 'Pod/Classes/**/*'
   s.resource_bundles = {
-    'Moment' => ['Pod/Assets/*.png']
+    'Moment' => ['Pod/Assets/leaks/*.jpg']
   }
 
   # s.public_header_files = 'Pod/Classes/**/*.h'
@@ -40,4 +40,5 @@ Pod::Spec.new do |s|
    s.dependency 'NYXImagesKit'
    s.dependency 'CocoaSecurity'
    s.dependency 'UICKeyChainStore'
+   s.dependency 'ReactiveCocoa'
 end

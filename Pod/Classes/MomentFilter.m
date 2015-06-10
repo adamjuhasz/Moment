@@ -16,6 +16,7 @@
     self = [super init];
     if (self) {
         _filterSteps = 100;
+        self.filterSettings = [NSDictionary dictionary];
     }
     return self;
 }
@@ -124,6 +125,14 @@
             self.filterName,
             self.filterValue,
             self.delegate];
+}
+
+-(id)copyWithZone:(NSZone *)zone
+{
+    MomentFilter *newFilter = [MomentFilter filterWithName:self.filterName withZone:zone];
+    newFilter.filterSettings = self.filterSettings;
+    [newFilter setWithUIImage:image];
+    return newFilter;
 }
 
 @end

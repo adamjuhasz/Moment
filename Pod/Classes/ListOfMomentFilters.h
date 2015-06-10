@@ -17,6 +17,6 @@
 #ifndef Moments_ListOfMomentFilters_h
 #define Moments_ListOfMomentFilters_h
 
-#define ArrayOfAllMomentFilters @[@"glitch",@"swapBlock",@"blockOut", @"leak", @"faded", @"split"];
+#define ArrayOfAllMomentFilters @[@"none", @"swapBlock",@"blockOut", @"leak", @"faded", @"split"]; //@"glitch"
 
 #endif

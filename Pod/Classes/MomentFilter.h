@@ -16,7 +16,7 @@
 
 @end
 
-@interface MomentFilter : NSObject
+@interface MomentFilter : NSObject <NSCopying>
 {
     float _filterValue;
     UIImage *image;
