@@ -33,22 +33,21 @@
     self.userInteractionEnabled = YES;
     imageView.userInteractionEnabled = YES;
     
-    [[RACObserve(self, moment)
-        filter:^BOOL(id value) {
-            return (value != nil);
-    }]
-        subscribeNext:^(Moment *aMoment) {
-            [previousSubscription dispose];
-            previousSubscription = [[RACObserve(aMoment, filteredImage)
-                                       filter:^BOOL(id value) {
-                                            return (value != nil);
-                                    }] subscribeNext:^(UIImage *filteredImage) {
-                                            imageView.image = filteredImage;
-                                    }];
-    }];
-    
+    [self rac_liftSelector:@selector(updatedMomentTo:) withSignals:[RACObserve(self, moment) filter:^BOOL(id value) { return (value != nil); }], nil];
     [self rac_liftSelector:@selector(setLongPressEnabled:) withSignals:RACObserve(self, touchEnabled), nil];
     self.touchEnabled = YES;
+}
+
+- (void)updatedMomentTo:(Moment*)aMoment
+{
+    [previousSubscription dispose];
+    previousSubscription = [[RACObserve(aMoment, filteredImage)
+                             filter:^BOOL(id value) {
+                                 return (value != nil);
+                             }] subscribeNext:^(UIImage *filteredImage) {
+                                 imageView.image = filteredImage;
+                             }];
+
 }
 
 - (void)setLongPressEnabled:(NSNumber*)isEnabled

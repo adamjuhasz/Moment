@@ -14,4 +14,7 @@
 @property Moment *moment;
 @property BOOL touchEnabled;
 
+- (void)commonInit;
+- (void)updatedMomentTo:(Moment*)aMoment;
+
 @end
