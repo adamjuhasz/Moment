@@ -10,6 +10,7 @@
 //#import "Moment.h"
 #import <ReactiveCocoa/ReactiveCocoa.h>
 #import <ReactiveTableViewBinding/CEObservableMutableArray.h>
+#import "MomentUser.h"
 
 @interface MomentRoom : NSObject
 
@@ -20,6 +21,7 @@
 @property CGFloat roomLifetime;
 
 @property CEObservableMutableArray *moments;
+@property NSArray *members;
 
 - (void)addMoments:(NSArray*)moments;
 
