@@ -21,6 +21,7 @@
     self = [super init];
     if (self) {
         _moments = [[CEObservableMutableArray alloc] init];
+        self.allowsPosting = YES;
     }
     return self;
 }

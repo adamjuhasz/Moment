@@ -23,6 +23,8 @@
 @property CEObservableMutableArray *moments;
 @property NSArray *members;
 
+@property BOOL allowsPosting;
+
 - (void)addMoments:(NSArray*)moments;
 
 @end
