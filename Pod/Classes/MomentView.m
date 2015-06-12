@@ -97,7 +97,7 @@
             copyOfFilter.filterValue = self.moment.filter.filterValue;
             copyOfFilter.delegate = self;
             
-            longPressTimer = [NSTimer scheduledTimerWithTimeInterval:0.2 target:self selector:@selector(timerWithValuesDown:) userInfo:nil repeats:YES];
+            longPressTimer = [NSTimer scheduledTimerWithTimeInterval:0.05 target:self selector:@selector(timerWithValuesDown:) userInfo:nil repeats:YES];
         }
             break;
             
@@ -108,7 +108,7 @@
         case UIGestureRecognizerStateCancelled:
         case UIGestureRecognizerStateEnded:
             [longPressTimer invalidate];
-            longPressTimer = [NSTimer scheduledTimerWithTimeInterval:0.2 target:self selector:@selector(timerWithValueUp:) userInfo:nil repeats:YES];
+            longPressTimer = [NSTimer scheduledTimerWithTimeInterval:0.05 target:self selector:@selector(timerWithValueUp:) userInfo:nil repeats:YES];
             break;
             
         default:
@@ -121,7 +121,7 @@
     if (copyOfFilter.filterValue == 0) {
         [longPressTimer invalidate];
     } else {
-        copyOfFilter.filterValue -= 0.01;
+        copyOfFilter.filterValue -= 0.05;
     }
 }
 
@@ -131,7 +131,7 @@
         [longPressTimer invalidate];
         copyOfFilter = nil;
     } else {
-        copyOfFilter.filterValue += 0.01;
+        copyOfFilter.filterValue += 0.1;
     }
 }
 
