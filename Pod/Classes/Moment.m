@@ -175,7 +175,6 @@ static const int ddLogLevel = DDLogLevelInfo;
          NSStringFromSelector(@selector(commentCount)) : @"commnets",
          NSStringFromSelector(@selector(activityCount)) : @"activity",
          NSStringFromSelector(@selector(dateLastChanged)) : @"dateLastChanged",
-         NSStringFromSelector(@selector(isPrivate)) : @"private",
          NSStringFromSelector(@selector(filterSettings)) : @"filterSettings",
          NSStringFromSelector(@selector(dictionary)) : NSNull.null,
          NSStringFromSelector(@selector(downloadPercent)) : NSNull.null,
