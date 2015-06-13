@@ -24,6 +24,9 @@
 @property NSArray *members;
 
 @property BOOL allowsPosting;
+@property BOOL isSubscribed;
+
+@property NSDate *createdAt;
 
 - (void)addMoments:(NSArray*)moments;
 

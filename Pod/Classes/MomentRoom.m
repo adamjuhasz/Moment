@@ -11,7 +11,9 @@
 #import <ReactiveCocoa/ReactiveCocoa.h>
 
 @interface MomentRoom ()
+{
 
+}
 @end
 
 @implementation MomentRoom
@@ -38,6 +40,7 @@
             }
         }
         if (momentIsNew) {
+            NSLog(@"added a new moment to \"%@\"", self.roomName);
             [newMoments addObject:aMoment];
         }
     }

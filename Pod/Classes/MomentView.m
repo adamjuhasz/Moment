@@ -16,6 +16,7 @@
     NSTimer *longPressTimer;
     UILongPressGestureRecognizer *longPresser;
     RACDisposable *previousSubscription;
+    UIImage *cachedImage;
 }
 @end
 
@@ -120,8 +121,9 @@
 {
     if (copyOfFilter.filterValue == 0) {
         [longPressTimer invalidate];
+        longPressTimer = nil;
     } else {
-        copyOfFilter.filterValue -= 0.05;
+        copyOfFilter.filterValue = MAX(copyOfFilter.filterValue - 0.05, 0);
     }
 }
 
@@ -129,14 +131,22 @@
 {
     if (copyOfFilter.filterValue >= self.moment.filter.filterValue) {
         [longPressTimer invalidate];
+        longPressTimer = nil;
+        
+        copyOfFilter.delegate = nil;
         copyOfFilter = nil;
     } else {
-        copyOfFilter.filterValue += 0.1;
+        copyOfFilter.filterValue = MIN(copyOfFilter.filterValue + 0.05, self.moment.filter.filterValue);
     }
 }
 
 - (void)momentFilter:(MomentFilter *)filter hasNewFilteredImage:(UIImage *)image
 {
+    if (copyOfFilter != nil && filter != copyOfFilter) {
+        //we are currently in touch down mode so do not accept new image
+        return;
+    }
+    
     imageView.image = image;
 }
 

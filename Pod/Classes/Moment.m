@@ -413,8 +413,6 @@ static const int ddLogLevel = DDLogLevelInfo;
 
 - (void)momentFilter:(MomentFilter*)filter hasNewFilteredImage:(UIImage*)image
 {
-    //NSLog(@"%@(0x%08X) has a new filtered image", self.postid, (unsigned int)self);
-    
     self.filteredImage = image;
     
     dispatch_async(dispatch_get_main_queue(), ^{
