@@ -99,6 +99,16 @@
         filter = [[FadedFilter allocWithZone:zone] init];
     } else if ([string isEqualToString:@"split"]) {
         filter = [[SplitChannelsFilter allocWithZone:zone] init];
+    } else if ([string isEqualToString:GrayScaleFilterName]) {
+        filter = [[GrayScaleFilter allocWithZone:zone] init];
+    } else if ([string isEqualToString:BlurFilterName]) {
+        filter = [[BlurFilter allocWithZone:zone] init];
+    } else if ([string isEqualToString:PixelateFilterName]) {
+        filter = [[PixelateFilter allocWithZone:zone] init];
+    } else if ([string isEqualToString:BrightExposureFilterName]) {
+        filter = [[BrightExposureFilter allocWithZone:zone] init];
+    } else {
+        filter = [[MomentFilter allocWithZone:zone] init];
     }
     
     if (filter) {

@@ -27,8 +27,7 @@
     CGFloat radius = 10*filterValue;
     blurFilter.blurRadiusInPixels = radius;
     
-    UIImage *filtered = [self filteredImage];
-    [self updateDelegateWithImage:filtered];
+    [self filteredImage];
 }
 
 - (UIImage*)filteredImage
@@ -38,10 +37,12 @@
     }
     
     [blurFilter useNextFrameForImageCapture];
-    [picture processImage];
+    [picture processImageWithCompletionHandler:^{
+        UIImage *filtered = [blurFilter imageFromCurrentFramebuffer];
+        [self updateDelegateWithImage:filtered];
+    }];
     
-    UIImage *filtered = [blurFilter imageFromCurrentFramebuffer];
-    return filtered;
+    return image;
 }
 
 - (void)setWithUIImage:(UIImage *)anImage
@@ -50,7 +51,5 @@
     picture = [[GPUImagePicture alloc] initWithImage:anImage];
     [picture addTarget:blurFilter];
 }
-
-
 
 @end

@@ -13,10 +13,14 @@
 #import "MomentLightleakFilter.h"
 #import "FadedFilter.h"
 #import "SplitChannelsFilter.h"
+#import "GrayScaleFilter.h"
+#import "BlurFilter.h"
+#import "PixelateFilter.h"
+#import "BrightExposureFilter.h"
 
 #ifndef Moments_ListOfMomentFilters_h
 #define Moments_ListOfMomentFilters_h
 
-#define ArrayOfAllMomentFilters @[@"none", @"swapBlock",@"blockOut", @"leak", @"faded", @"split"]; //@"glitch"
+#define ArrayOfAllMomentFilters @[@"none", @"swapBlock", @"blockOut", @"leak", @"faded", @"split", GrayScaleFilterName, PixelateFilterName, BrightExposureFilterName, BlurFilterName]; //@"glitch"
 
 #endif

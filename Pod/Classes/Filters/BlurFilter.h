@@ -9,6 +9,8 @@
 #import "MomentFilter.h"
 #import <GPUImage/GPUImage.h>
 
+#define BlurFilterName @"Blur"
+
 @interface BlurFilter : MomentFilter
 {
     GPUImageGaussianBlurFilter *blurFilter;
