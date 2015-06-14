@@ -30,6 +30,10 @@
 
 - (void)addMoments:(NSArray*)moments
 {
+    if (moments == nil) {
+        return;
+    }
+    
     NSMutableArray *newMoments = [NSMutableArray array];
     for (Moment *aMoment in moments) {
         BOOL momentIsNew = YES;

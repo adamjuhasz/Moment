@@ -42,6 +42,7 @@
 - (void)updatedMomentTo:(Moment*)aMoment
 {
     [previousSubscription dispose];
+    imageView.image = aMoment.filteredImage;
     previousSubscription = [[RACObserve(aMoment, filteredImage)
                              filter:^BOOL(id value) {
                                  return (value != nil);
