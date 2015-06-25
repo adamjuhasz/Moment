@@ -21,6 +21,6 @@
 #ifndef Moments_ListOfMomentFilters_h
 #define Moments_ListOfMomentFilters_h
 
-#define ArrayOfAllMomentFilters @[@"none", @"swapBlock", @"blockOut", @"leak", @"faded", @"split", GrayScaleFilterName, PixelateFilterName, BrightExposureFilterName, BlurFilterName]; //@"glitch"
+#define ArrayOfAllMomentFilters @[@"none", @"swapBlock", @"blockOut", @"leak", @"faded", @"split"/*, GrayScaleFilterName, PixelateFilterName, BrightExposureFilterName, BlurFilterName*/]; //@"glitch"
 
 #endif
